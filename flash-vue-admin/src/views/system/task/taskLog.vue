@@ -26,7 +26,7 @@
       </el-table-column>
       <el-table-column label="异常信息">
         <template slot-scope="scope">
-          {{scope.row.jobExecption}}
+          {{scope.row.jobException}}
         </template>
       </el-table-column>
 
@@ -38,6 +38,7 @@
       :page-sizes="[10, 20, 50, 100,500]"
       :page-size="listQuery.limit"
       :total="total"
+      :current-page.sync="listQuery.page"
       @size-change="changeSize"
       @current-change="fetchPage"
       @prev-click="fetchPrev"

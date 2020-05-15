@@ -6,7 +6,9 @@ import { listForRouter } from '@/api/system/menu'
 const state = {
   token: getToken(),
   name: '',
-  avatar: ''
+  avatar: '',
+  permissions:null,
+  roles:[]
 }
 
 const mutations = {
@@ -21,6 +23,12 @@ const mutations = {
   },
   SET_PROFILE:(state,profile) => {
     state.profile = profile
+  },
+  SET_PERMISSIONS:(state,permissions) => {
+    state.permissions = permissions
+  },
+  SET_ROLES:(state,roles) => {
+    state.roles = roles
   }
 }
 
@@ -49,12 +57,13 @@ const actions = {
         if (!data) {
           reject('Verification failed, please Login again.')
         }
-
-        const { name, avatar,profile } = data
-
+        console.log('data',data)
+        const { name, profile,permissions,roles } = data
         commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
+        commit('SET_AVATAR', profile.avatar)
         commit('SET_PROFILE',profile)
+        commit('SET_ROLES',roles)
+        commit('SET_PERMISSIONS',permissions)
         resolve(data)
       }).catch(error => {
         reject(error)
@@ -67,6 +76,11 @@ const actions = {
     return new Promise((resolve, reject) => {
       logout(state.token).then(() => {
         commit('SET_TOKEN', '')
+        commit('SET_NAME', '')
+        commit('SET_AVATAR', '')
+        commit('SET_PROFILE',{})
+        commit('SET_ROLES',[])
+        commit('SET_PERMISSIONS',[])
         removeToken()
         resetRouter()
         resolve()
@@ -83,6 +97,11 @@ const actions = {
       removeToken()
       resolve()
     })
+  },
+  updateToken({commit},{token}){
+    console.log('newToken',token)
+    commit('SET_TOKEN', token)
+    setToken(token)
   }
 }
 

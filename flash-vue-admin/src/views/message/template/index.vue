@@ -1,6 +1,28 @@
 <template>
     <div class="app-container">
         <div class="block">
+          <el-row  :gutter="20">
+
+            <el-col :span="4">
+                <el-select    size="mini" v-model="listQuery.idMessageSender" filterable placeholder="请选择发送器">
+                  <el-option
+                    v-for="item in sendList"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id"
+                  >
+                  </el-option>
+                </el-select>
+            </el-col>
+            <el-col :span="4">
+              <el-input v-model="listQuery.title" size="mini" placeholder="请输入标题"></el-input>
+            </el-col>
+            <el-col :span="6">
+              <el-button type="success" size="mini" icon="el-icon-search" @click.native="search">{{ $t('button.search') }}</el-button>
+              <el-button type="primary" size="mini" icon="el-icon-refresh" @click.native="reset">{{ $t('button.reset') }}</el-button>
+            </el-col>
+          </el-row>
+          <br>
             <el-row>
                 <el-col :span="24">
                     <el-button type="success" size="mini" icon="el-icon-plus" @click.native="add">{{ $t('button.add') }}</el-button>
@@ -46,6 +68,7 @@
                 :page-sizes="[10, 20, 50, 100,500]"
                 :page-size="listQuery.limit"
                 :total="total"
+                :current-page.sync="listQuery.page"
                 @size-change="changeSize"
                 @current-change="fetchPage"
                 @prev-click="fetchPrev"
@@ -56,7 +79,7 @@
                 :title="formTitle"
                 :visible.sync="formVisible"
                 width="70%">
-            <el-form ref="form" :model="form" :rules="rules" label-width="150px">
+            <el-form ref="form" :model="form" :rules="rules" label-width="120px">
                 <el-row>
                     <el-col :span="12">
                         <el-form-item label="编号"  >

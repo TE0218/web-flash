@@ -5,9 +5,7 @@ import lombok.Data;
 import org.hibernate.annotations.Table;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
+import javax.persistence.*;
 import java.util.Date;
 
 /**
@@ -46,4 +44,7 @@ public class User  extends BaseEntity {
     private Integer status;
     @Column
     private Integer version;
+    @JoinColumn(name="deptid", insertable = false, updatable = false,foreignKey = @ForeignKey(name="none",value = ConstraintMode.NO_CONSTRAINT))
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Dept dept;
 }

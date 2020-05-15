@@ -1,6 +1,8 @@
 package cn.enilu.flash.cache.impl;
 
 import cn.enilu.flash.bean.entity.system.Cfg;
+import cn.enilu.flash.bean.enumeration.ConfigKeyEnum;
+import cn.enilu.flash.cache.BaseCache;
 import cn.enilu.flash.cache.CacheDao;
 import cn.enilu.flash.cache.ConfigCache;
 import cn.enilu.flash.dao.system.CfgRepository;
@@ -19,7 +21,7 @@ import java.util.List;
  * @version 2018/12/20 0020
  */
 @Service
-public class ConfigCacheImpl implements ConfigCache {
+public class ConfigCacheImpl extends BaseCache implements ConfigCache {
     private static  final Logger logger = LoggerFactory.getLogger(ConfigCacheImpl.class);
     @Autowired
     private CfgRepository cfgRepository;
@@ -28,7 +30,7 @@ public class ConfigCacheImpl implements ConfigCache {
 
     @Override
     public Object get(String key) {
-        return (String) cacheDao.hget(EhcacheDao.CONSTANT,key);
+        return  cacheDao.hget(CacheDao.CONSTANT,key);
     }
 
     @Override
@@ -52,20 +54,25 @@ public class ConfigCacheImpl implements ConfigCache {
         return ret;
     }
 
+    @Override
+    public String get(ConfigKeyEnum configKeyEnum) {
+        return get(configKeyEnum.getValue(),null);
+    }
+
 
     @Override
     public void set(String key, Object val) {
-        cacheDao.hset(EhcacheDao.CONSTANT,key,val);
+        cacheDao.hset(CacheDao.CONSTANT,key,val);
     }
 
     @Override
     public void del(String key, String val) {
-        cacheDao.hdel(EhcacheDao.CONSTANT,val);
+        cacheDao.hdel(CacheDao.CONSTANT,val);
     }
 
     @Override
     public void cache() {
-        logger.info("reset config cache");
+        super.cache();
         List<Cfg> list = cfgRepository.findAll();
         if (list != null && !list.isEmpty()) {
             for (Cfg cfg : list) {

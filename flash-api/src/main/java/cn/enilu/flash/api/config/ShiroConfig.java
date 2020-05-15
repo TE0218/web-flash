@@ -2,6 +2,7 @@ package cn.enilu.flash.api.config;
 
 import cn.enilu.flash.api.interceptor.JwtFilter;
 import cn.enilu.flash.security.ApiRealm;
+import cn.enilu.flash.security.SystemLogoutFilter;
 import cn.enilu.flash.utils.Maps;
 import org.apache.shiro.mgt.DefaultSessionStorageEvaluator;
 import org.apache.shiro.mgt.DefaultSubjectDAO;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 import javax.servlet.Filter;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -51,18 +53,41 @@ public class ShiroConfig {
         filterMap.put("jwt", new JwtFilter());
         factoryBean.setFilters(filterMap);
 
+        filterMap.put("logout", new SystemLogoutFilter());
         factoryBean.setSecurityManager(securityManager);
         factoryBean.setUnauthorizedUrl("/401");
 
         /*
          * 自定义url规则
          * http://shiro.apache.org/web.html#urls-
+         * 这里最好用LinkedHashMap,否则可能回出现anon配置无效的情况
          */
-        Map<String, String> filterRuleMap =  Maps.newHashMap();
+        Map<String, String> filterRuleMap = new LinkedHashMap<String,String>();
         // 所有请求通过我们自己的JWT Filter
-        filterRuleMap.put("/**", "jwt");
+        //swagger资源不拦截
+        filterRuleMap.put("/swagger-ui.html","anon");
+        filterRuleMap.put("/v2/api-docs/**", "anon");
+        filterRuleMap.put("/webjars/**", "anon");
+        filterRuleMap.put("/swagger-resources","anon");
+        filterRuleMap.put("/images/**","anon");
+        filterRuleMap.put("/configuration/security","anon");
+        filterRuleMap.put("/configuration/ui","anon");
+
+        filterRuleMap.put("/file/download","anon");
+        filterRuleMap.put("/file/getImgStream","anon");
+        filterRuleMap.put("/file/getImgBase64","anon");
+
+
+        //druid监控地址不拦截
+        filterRuleMap.put("/druid/**","anon");
+        //登录登出不拦截
+        filterRuleMap.put("/account/login","anon");
+        filterRuleMap.put("/logout", "logout");
+        //H5前端不拦截
+        filterRuleMap.put("/offcialsite/**","anon");
         // 访问401和404页面不通过我们的Filter
         filterRuleMap.put("/401", "anon");
+        filterRuleMap.put("/**", "jwt");
         factoryBean.setFilterChainDefinitionMap(filterRuleMap);
         return factoryBean;
     }

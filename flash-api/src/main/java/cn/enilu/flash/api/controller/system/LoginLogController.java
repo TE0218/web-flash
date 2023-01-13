@@ -2,6 +2,7 @@ package cn.enilu.flash.api.controller.system;
 
 import cn.enilu.flash.api.controller.BaseController;
 import cn.enilu.flash.bean.constant.factory.PageFactory;
+import cn.enilu.flash.bean.core.BussinessLog;
 import cn.enilu.flash.bean.entity.system.LoginLog;
 import cn.enilu.flash.bean.enumeration.Permission;
 import cn.enilu.flash.bean.vo.front.Rets;
@@ -10,13 +11,10 @@ import cn.enilu.flash.service.system.LoginLogService;
 import cn.enilu.flash.utils.BeanUtil;
 import cn.enilu.flash.utils.DateUtil;
 import cn.enilu.flash.utils.factory.Page;
-import cn.enilu.flash.warpper.LogWarpper;
+import cn.enilu.flash.warpper.LogWrapper;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -31,7 +29,8 @@ import java.util.List;
 public class LoginLogController extends BaseController {
     @Autowired
     private LoginLogService loginlogService;
-    @RequestMapping(value = "/list",method = RequestMethod.GET)
+
+    @GetMapping(value = "/list")
     @RequiresPermissions(value = {Permission.LOGIN_LOG})
     public Object list(@RequestParam(required = false) String beginTime,
                        @RequestParam(required = false) String endTime,
@@ -39,9 +38,9 @@ public class LoginLogController extends BaseController {
         Page<LoginLog> page = new PageFactory<LoginLog>().defaultPage();
         page.addFilter("createTime", SearchFilter.Operator.GTE, DateUtil.parseDate(beginTime));
         page.addFilter("createTime", SearchFilter.Operator.LTE, DateUtil.parseDate(endTime));
-        page.addFilter( "logname", SearchFilter.Operator.LIKE, logName);
+        page.addFilter("logname", SearchFilter.Operator.LIKE, logName);
         Page pageResult = loginlogService.queryPage(page);
-        pageResult.setRecords((List<LoginLog>) new LogWarpper(BeanUtil.objectsToMaps(pageResult.getRecords())).warp());
+        pageResult.setRecords((List<LoginLog>) new LogWrapper(BeanUtil.objectsToMaps(pageResult.getRecords())).warp());
         return Rets.success(pageResult);
 
     }
@@ -50,7 +49,8 @@ public class LoginLogController extends BaseController {
     /**
      * 清空日志
      */
-    @RequestMapping(method = RequestMethod.DELETE)
+    @DeleteMapping
+    @BussinessLog(value = "清空登录日志")
     @RequiresPermissions(value = {Permission.LOGIN_LOG_CLEAR})
     public Object clear() {
         loginlogService.clear();

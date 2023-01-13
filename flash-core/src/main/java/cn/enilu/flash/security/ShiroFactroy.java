@@ -31,7 +31,7 @@ import java.util.Set;
 @Service
 @DependsOn("springContextHolder")
 @Transactional(readOnly = true)
-public class ShiroFactroy     {
+public class ShiroFactroy {
 
     @Autowired
     private UserRepository userRepository;
@@ -64,9 +64,9 @@ public class ShiroFactroy     {
     }
 
 
-    public ShiroUser shiroUser(User user) {
-        ShiroUser shiroUser = tokenCache.getUser(HttpUtil.getToken());
-        if(shiroUser!=null){
+    public ShiroUser shiroUser(String token,User user) {
+        ShiroUser shiroUser = tokenCache.getUser(token);
+        if (shiroUser != null) {
             return shiroUser;
         }
         shiroUser = new ShiroUser();
@@ -86,14 +86,14 @@ public class ShiroFactroy     {
             roleList.add(roleId);
             Role role = roleRepository.getOne(roleId);
             roleNameList.add(role.getName());
-            roleCodeList.add(role.getTips());
+            roleCodeList.add(role.getCode());
             permissions.addAll(menuRepository.getResCodesByRoleId(roleId));
             List<String> list = menuRepository.getResUrlsByRoleId(roleId);
-             for(String resUrl:list) {
-                if(StringUtil.isNotEmpty(resUrl)) {
-                 resUrls.add(resUrl);
+            for (String resUrl : list) {
+                if (StringUtil.isNotEmpty(resUrl)) {
+                    resUrls.add(resUrl);
                 }
-             }
+            }
 
 
         }
@@ -103,7 +103,7 @@ public class ShiroFactroy     {
         shiroUser.setPermissions(permissions);
 
         shiroUser.setUrls(resUrls);
-        tokenCache.setUser(HttpUtil.getToken(),shiroUser);
+        tokenCache.setUser(token, shiroUser);
         return shiroUser;
     }
 

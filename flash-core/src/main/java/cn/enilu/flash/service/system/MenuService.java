@@ -49,6 +49,7 @@ public class MenuService extends BaseService<Menu, Long, MenuRepository> {
 
     /**
      * 获取菜单列表
+     *
      * @return
      */
     public List<MenuNode> getMenus() {
@@ -70,18 +71,11 @@ public class MenuService extends BaseService<Menu, Long, MenuRepository> {
 
     /**
      * 获取左侧菜单树
+     *
      * @return
      */
-    public List<RouterMenu> getSideBarMenus(List<Long> roleIds) {
-        StringBuilder builder  = new StringBuilder();
-         for(int i=0;i<roleIds.size();i++){
-             if(i==roleIds.size()-1){
-                 builder.append(roleIds.get(i));
-             }else {
-                 builder.append(roleIds.get(i)).append(",");
-             }
-         }
-        List<RouterMenu> list = transferRouteMenu(menuRepository.getMenusByRoleids(builder.toString()));
+    public List<RouterMenu> getSideBarMenus(List roleIds) {
+        List<RouterMenu> list = transferRouteMenu(menuRepository.getMenusByRoleids(roleIds));
         List<RouterMenu> result = generateRouterTree(list);
         for (RouterMenu menuNode : result) {
             if (!menuNode.getChildren().isEmpty()) {
@@ -140,7 +134,7 @@ public class MenuService extends BaseService<Menu, Long, MenuRepository> {
 
             if (menuNode.getParentId().intValue() != 0) {
                 RouterMenu parentNode = map.get(menuNode.getParentId());
-                if(parentNode!=null) {
+                if (parentNode != null) {
                     parentNode.getChildren().add(menuNode);
                 }
             } else {
@@ -158,7 +152,7 @@ public class MenuService extends BaseService<Menu, Long, MenuRepository> {
                 Object[] source = (Object[]) menus.get(i);
                 MenuNode menuNode = new MenuNode();
                 menuNode.setId(Long.valueOf(source[0].toString()));
-                menuNode.setIcon(String.valueOf(source[1]));
+                menuNode.setIcon(StringUtil.sNull(source[1]));
                 menuNode.setParentId(Long.valueOf(source[2].toString()));
                 menuNode.setName(String.valueOf(source[3]));
                 menuNode.setUrl(String.valueOf(source[4]));
@@ -166,15 +160,16 @@ public class MenuService extends BaseService<Menu, Long, MenuRepository> {
                 menuNode.setIsmenu(Integer.valueOf(source[6].toString()));
                 menuNode.setNum(Integer.valueOf(source[7].toString()));
                 menuNode.setCode(String.valueOf(source[8]));
-                menuNode.setStatus(Integer.valueOf(source[9].toString()));
-                if (source[10] != null) {
-                    menuNode.setComponent(source[10].toString());
+
+                if (source[9] != null) {
+                    menuNode.setComponent(source[9].toString());
                 }
-                if("1".equals(source[11].toString())){
+                if ("1".equals(source[10].toString())) {
                     menuNode.setHidden(true);
-                }else{
+                } else {
                     menuNode.setHidden(false);
                 }
+                menuNode.setPcode(StringUtil.sNull(source[11]));
                 menuNodes.add(menuNode);
 
             }
@@ -189,25 +184,24 @@ public class MenuService extends BaseService<Menu, Long, MenuRepository> {
         try {
             for (int i = 0; i < menus.size(); i++) {
                 Object[] source = (Object[]) menus.get(i);
-                if (source[10] == null) {
+                if (source[9] == null) {
                     continue;
                 }
 
                 RouterMenu menu = new RouterMenu();
                 menu.setPath(String.valueOf(source[4]));
-                menu.setName(String.valueOf(source[3]));
+                menu.setName(String.valueOf(source[8]));
                 MenuMeta meta = new MenuMeta();
                 meta.setIcon(String.valueOf(source[1]));
-                //如果使用前端vue-i18n对菜单进行国际化，则title設置为code，且code需要与国际化资源文件中的key值一致
-                meta.setTitle(String.valueOf(source[8]));
-                //如果不需要做国际化，则title直接设置后台管理配置的菜单标题即可
-//                meta.setTitle(String.valueOf(source[3]));
+                meta.setTitle(String.valueOf(source[3]));
                 menu.setNum(Integer.valueOf(source[7].toString()));
                 menu.setParentId(Long.valueOf(source[2].toString()));
-                menu.setComponent(source[10].toString());
+                if(source[9]!=null) {
+                    menu.setComponent(source[9].toString());
+                }
                 menu.setId(Long.valueOf(source[0].toString()));
                 menu.setMeta(meta);
-                if("1".equals(source[11].toString())){
+                if ("1".equals(source[10].toString())) {
                     menu.setHidden(true);
                 }
                 routerMenus.add(menu);

@@ -2,7 +2,6 @@ package cn.enilu.flash.service.system.impl;
 
 import cn.enilu.flash.bean.constant.cache.CacheKey;
 import cn.enilu.flash.bean.constant.state.ManagerStatus;
-import cn.enilu.flash.bean.constant.state.MenuStatus;
 import cn.enilu.flash.bean.entity.system.*;
 import cn.enilu.flash.bean.vo.DictVo;
 import cn.enilu.flash.bean.vo.SpringContextHolder;
@@ -20,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 
 /**
@@ -81,12 +79,7 @@ public class ConstantFactory implements IConstantFactory {
     }
 
     private User getUser(Long id) {
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (optionalUser.isPresent()) {
-            User user = optionalUser.get();
-            return user;
-        }
-        return null;
+        return  userRepository.getOne(id);
     }
 
     /**
@@ -132,7 +125,7 @@ public class ConstantFactory implements IConstantFactory {
      */
     @Override
     public String getSingleRoleName(Long roleId) {
-        if (0 == roleId) {
+        if (roleId==null|| roleId.intValue()==0) {
             return "--";
         }
         Role roleObj = getRole(roleId);
@@ -152,7 +145,7 @@ public class ConstantFactory implements IConstantFactory {
         }
         Role roleObj = getRole(roleId);
         if (StringUtil.isNotNullOrEmpty(roleObj) && StringUtil.isNotEmpty(roleObj.getName())) {
-            return roleObj.getTips();
+            return roleObj.getCode();
         }
         return "";
     }
@@ -322,14 +315,6 @@ public class ConstantFactory implements IConstantFactory {
     }
 
     /**
-     * 获取菜单状态
-     */
-    @Override
-    public String getMenuStatusName(Integer status) {
-        return MenuStatus.valueOf(status);
-    }
-
-    /**
      * 查询字典
      */
     @Override
@@ -396,37 +381,25 @@ public class ConstantFactory implements IConstantFactory {
         set(CacheKey.CFG + cfgName, val);
         return val;
     }
+
     @Override
     public Role getRole(Long id) {
-        Optional<Role> optional = roleRepository.findById(id);
-        if (optional.isPresent()) {
-            return optional.get();
-        }
-        return null;
+        return roleRepository.getOne(id);
     }
+
     @Override
     public Dept getDept(Long id) {
-        Optional<Dept> optional = deptRepository.findById(id);
-        if (optional.isPresent()) {
-            return optional.get();
-        }
-        return null;
+        return deptRepository.getOne(id);
     }
+
     @Override
     public Menu getMenu(Long id) {
-        Optional<Menu> optiona = menuRepository.findById(id);
-        if (optiona.isPresent()) {
-            return optiona.get();
-        }
-        return null;
+        return  menuRepository.getOne(id);
     }
+
     @Override
     public Notice getNotice(Long id) {
-        Optional<Notice> optional = sysNoticeRepository.findById(id);
-        if (optional.isPresent()) {
-            return optional.get();
-        }
-        return null;
+        return sysNoticeRepository.getOne(id);
     }
 
     @Override

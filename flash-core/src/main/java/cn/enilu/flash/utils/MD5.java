@@ -8,9 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -19,7 +19,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public class MD5 {
 
-    public static final Logger LOG = LoggerFactory.getLogger(MD5.class);
+    public static final Logger logger = LoggerFactory.getLogger(MD5.class);
 
     /**
      * 16进制字符集
@@ -33,19 +33,7 @@ public class MD5 {
      * 加盐参数
      */
     public final static String HASH_ALGORITHM_NAME = "MD5";
-    /**
-     * 指定算法为MD5的MessageDigest
-     */
-    private static MessageDigest MESSAGE_DIGEST = null;
 
-    /** 初始化messageDigest的加密算法为MD5 */
-    static {
-        try {
-            MESSAGE_DIGEST = MessageDigest.getInstance("MD5");
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-    }
 
     /**
      * * MD5加密字符串
@@ -69,8 +57,14 @@ public class MD5 {
      */
 
     public static String getMD5String(byte[] bytes) {
-        MESSAGE_DIGEST.update(bytes);
-        return bytesToHex(MESSAGE_DIGEST.digest());
+        try {
+            MessageDigest MESSAGE_DIGEST = MessageDigest.getInstance(HASH_ALGORITHM_NAME);
+            MESSAGE_DIGEST.update(bytes);
+            return bytesToHex(MESSAGE_DIGEST.digest());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     /**
@@ -84,13 +78,14 @@ public class MD5 {
         FileInputStream in = null;
         FileChannel ch = null;
         try {
+            MessageDigest MESSAGE_DIGEST = MessageDigest.getInstance(HASH_ALGORITHM_NAME);
             in = new FileInputStream(file);
             ch = in.getChannel();
             ByteBuffer byteBuffer = ch.map(FileChannel.MapMode.READ_ONLY, 0, file.length());
             MESSAGE_DIGEST.update(byteBuffer);
             ret = bytesToHex(MESSAGE_DIGEST.digest());
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            logger.error(e.getMessage(), e);
         } finally {
             IOUtils.closeQuietly(in);
             IOUtils.closeQuietly(ch);
@@ -159,13 +154,11 @@ public class MD5 {
             messageDigest = MessageDigest.getInstance("MD5");
             messageDigest.reset();
             //先加盐
-            messageDigest.update(salt.getBytes("UTF-8"));
+            messageDigest.update(salt.getBytes(StandardCharsets.UTF_8));
             //再放需要被加密的数据
-            messageDigest.update(credentials.getBytes("UTF-8"));
+            messageDigest.update(credentials.getBytes(StandardCharsets.UTF_8));
         } catch (NoSuchAlgorithmException e) {
             System.out.println("NoSuchAlgorithmException caught!");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
         }
 
         byte[] byteArray = messageDigest.digest();
@@ -179,8 +172,9 @@ public class MD5 {
                 md5StrBuff.append(Integer.toHexString(0xFF & byteArray[i]));
             }
         }
+        String ret  =  md5StrBuff.toString();
 
-        return md5StrBuff.toString();
+        return ret;
     }
 
     public static void main(String[] args) {

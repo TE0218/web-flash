@@ -3,10 +3,7 @@ package cn.enilu.flash.bean.entity.system;
 import lombok.Data;
 import org.hibernate.annotations.Table;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 /**
  * Created  on 2018/4/2 0002.
@@ -14,15 +11,15 @@ import javax.persistence.Id;
  * @author enilu
  */
 @Entity(name = "t_sys_relation")
-@Table(appliesTo = "t_sys_relation",comment = "菜单角色关系")
+@Table(appliesTo = "t_sys_relation", comment = "菜单角色关系")
 @Data
 public class Relation {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column
+    @Column(columnDefinition = "BIGINT COMMENT '菜单id'")
     private Long menuid;
-    @Column
+    @Column(columnDefinition = "BIGINT COMMENT '角色id'")
     private Long roleid;
 
 }

@@ -1,7 +1,7 @@
 package cn.enilu.flash.security;
 
 import cn.enilu.flash.bean.vo.front.Rets;
-import com.alibaba.fastjson.JSON;
+import cn.enilu.flash.utils.JsonUtil;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authc.LogoutFilter;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ public class SystemLogoutFilter extends LogoutFilter {
         try {
             subject.logout();
         } catch (Exception ex) {
-            logger.error("退出登录错误",ex);
+            logger.error("退出登录错误", ex);
         }
 
         this.writeResult(response);
@@ -33,12 +33,12 @@ public class SystemLogoutFilter extends LogoutFilter {
         return false;
     }
 
-    private void writeResult(ServletResponse response){
+    private void writeResult(ServletResponse response) {
         //响应Json结果
         PrintWriter out = null;
         try {
             out = response.getWriter();
-            out.append(JSON.toJSONString(Rets.success()));
+            out.append(JsonUtil.toJson(Rets.success()));
         } catch (IOException e) {
             logger.error("返回Response信息出现IOException异常:" + e.getMessage());
         } finally {

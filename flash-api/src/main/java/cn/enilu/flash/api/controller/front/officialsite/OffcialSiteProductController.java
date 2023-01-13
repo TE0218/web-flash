@@ -12,8 +12,8 @@ import cn.enilu.flash.service.cms.BannerService;
 import cn.enilu.flash.utils.Maps;
 import cn.enilu.flash.utils.factory.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -28,11 +28,11 @@ public class OffcialSiteProductController extends BaseController {
     @Autowired
     private ArticleService articleService;
 
-    @RequestMapping(method = RequestMethod.GET)
+    @GetMapping
     public Object index() {
         Map<String, Object> dataMap = Maps.newHashMap();
 
-                BannerVo banner = bannerService.queryBanner(BannerTypeEnum.SOLUTION.getValue());
+        BannerVo banner = bannerService.queryBanner(BannerTypeEnum.SOLUTION.getValue());
         dataMap.put("banner", banner);
 
         List<Product> products = new ArrayList<>();
@@ -42,7 +42,7 @@ public class OffcialSiteProductController extends BaseController {
         }
         dataMap.put("productList", products);
 
-        Map map =  Maps.newHashMap("data",dataMap);
+        Map map = Maps.newHashMap("data", dataMap);
         return Rets.success(map);
 
     }

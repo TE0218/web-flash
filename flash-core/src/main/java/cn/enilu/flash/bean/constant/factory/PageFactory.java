@@ -19,35 +19,28 @@ public class PageFactory<T> {
 
     public Page<T> defaultPage() {
         HttpServletRequest request = HttpUtil.getRequest();
-        //每页多少条数据
-        int limit = Integer.valueOf(request.getParameter("limit"));
-        String pageNum = request.getParameter("page");
-        //每页的偏移量(本页当前有多少条)
-        int offset = 0;
-        if (StringUtils.isNotEmpty(pageNum)) {
-            offset = (Integer.valueOf(pageNum) - 1) * limit;
-        } else {
 
-            offset = Integer.valueOf(request.getParameter("offset"));
+        String limitStr = request.getParameter("limit");
+        int limit =  10;
+        if(StringUtil.isNotEmpty(limitStr)){
+          limit = Integer.valueOf(limitStr);
+        }
+        String pageNum = request.getParameter("page");
+        int current = 1;
+
+        if (StringUtils.isNotEmpty(pageNum)) {
+            current = Integer.valueOf(pageNum);
         }
         //排序字段名称
         String sortName = request.getParameter("sort");
         //asc或desc(升序或降序)
         String order = request.getParameter("order");
-        if (StringUtil.isEmpty(sortName)) {
-            Page<T> page = new Page<>((offset / limit + 1), limit);
-            return page;
-        } else {
-            Page<T> page = new Page<>((offset / limit + 1), limit, sortName);
-            if (Order.ASC.getDes().equals(order)) {
-                Sort sort = Sort.by(Sort.Direction.ASC, order);
-                page.setSort(sort);
-            } else {
-                Sort sort = Sort.by(Sort.Direction.DESC, order);
-                page.setSort(sort);
-
-            }
-            return page;
+        Page<T> page = new Page<>(current, limit);
+        if (StringUtil.isNotEmpty(sortName)) {
+            Sort.Direction direction = Order.ASC.getDes().equals(order) ? Sort.Direction.ASC : Sort.Direction.DESC;
+            Sort sort = Sort.by(direction, sortName);
+            page.setSort(sort);
         }
+        return page;
     }
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <div class="block">
-      <iframe src="http://flash-api.enilu.cn/api/druid/sql.html" width="100%" height="768px" frameborder="0" scrolling="auto"></iframe>
+      <iframe src="http://flash-api.enilu.cn/druid/index.html" width="100%" height="768px" frameborder="0" scrolling="auto"></iframe>
 
 
     </div>
@@ -11,6 +11,7 @@
 
 <script>
   export default {
+    name:'druid',
     created: function () {
       this.init()
     },
@@ -18,7 +19,7 @@
       init() {
         this.$notify({
           title: '提示',
-          message: '用户名密码参考：application.properties',
+          message: '查看application.yml配置文件获取账号密码',
           duration: 3000
         })
       },

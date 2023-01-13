@@ -15,18 +15,23 @@ export default {
     loginLog: 'Login Log',
     log: 'Bussiness Log',
     cfg: 'Config',
-
     banner: 'Banner',
     article: 'Article',
     editArticle: 'Edit Article',
     file: 'File',
     contacts: 'Contacts',
     channel: 'Channel',
+    cmsDemo:'Cms Demo',
     druid: 'Monitor',
     swagger: 'Docs',
     msg: 'History',
     msgTpl: 'Template',
-    msgSender: 'Sender'
+    msgSender: 'Sender',
+    document: 'Document',
+    workFlow: 'Work Flow',
+    processDefinition: 'Process Definition',
+    workFlowRequest: 'Process Instance',
+    workFlowTask: 'My Tasks'
   },
   navbar: {
     logOut: 'Log Out',
@@ -50,13 +55,26 @@ export default {
     add: 'Add',
     edit: 'Edit',
     delete: 'Delete',
+    view: 'View',
+    deploy: 'Deploy',
     search: 'Search',
     reset: 'Reset',
     submit: 'Submit',
     cancel: 'Cancel',
+    close: 'Close',
     clear: 'Clear',
     back: 'Back',
-    export: 'Export'
+    export: 'Export',
+    resetPwd: 'Reset Password',
+    audit: 'Audit',
+    pass:'Accept',
+    reject:'Reject'
+  },
+  tags: {
+    refresh: 'Refresh',
+    close: 'Close',
+    closeOthers: 'Close Others',
+    closeAll: 'Close All'
   },
   common: {
     mustSelectOne: 'Please select the record to operate!',
@@ -66,6 +84,7 @@ export default {
     optionSuccess: 'success',
     uploadError: 'Upload Error',
     isRequired: ' is required',
+    todo:'Developing',
     week: {
       mon: 'Mon',
       tue: 'Tue',
@@ -103,5 +122,8 @@ export default {
     nameInput: 'Input config name',
     valueInput: 'Input config value',
     lengthValidation: ' must be between 2 and 20 characters'
+  },
+  workflow: {
+    startProcessInstance: 'start'
   }
 }

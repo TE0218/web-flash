@@ -1,13 +1,11 @@
 import request from '@/utils/request'
+import qs from 'qs'
 
 export function login(data) {
   return request({
     url: '/account/login',
     method: 'post',
-    params: {
-      "username": data.username,
-      "password": data.password
-    }
+    data:  data
   })
 }
 
@@ -29,6 +27,14 @@ export function updatePwd(params) {
   return request({
     url: '/account/updatePwd',
     method: 'post',
+    data: qs.stringify(params)
+  })
+}
+
+export function getQrcodeStatus(params) {
+  return request({
+    url: '/account/qrcode/getRet',
+    method: 'get',
     params
   })
 }

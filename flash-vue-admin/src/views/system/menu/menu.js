@@ -1,9 +1,12 @@
 import treeTable from '@/components/TreeTable'
-import { getList, save, delMenu } from '@/api/system/menu'
+import menuApi from '@/api/system/menu'
+import permission from '@/directive/permission/index.js'
+import IconSelect from '@/components/IconSelect'
 
 export default {
-  name: 'treeTableDemo',
-  components: { treeTable },
+  directives: { permission },
+  name: 'menu',
+  components: { treeTable, IconSelect },
   data() {
     return {
       showTree: false,
@@ -12,20 +15,19 @@ export default {
         label: 'name',
         children: 'children'
       },
-
       listLoading: true,
-      expandAll: true,
+      expandAll: false,
       formTitle: '',
       formVisible: false,
       isAdd: false,
       form: {
         id: '',
-        pname: '',
         name: '',
         code: '',
         url: '',
         pcode: '',
         ismenu: 1,
+        hidden:false,
         num: 1
       },
       rules: {
@@ -38,13 +40,14 @@ export default {
           { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
         ],
         url: [
-          { required: true, message: '请输入请求地址', trigger: 'blur' }
+          { required: true, message: '请输入资源地址', trigger: 'blur' }
         ],
         num: [
           { required: true, message: '请输入排序', trigger: 'blur' }
         ]
       },
       data: [],
+      treeData:[],
       selRow: {}
     }
   },
@@ -52,20 +55,23 @@ export default {
     this.init()
   },
   methods: {
+    // 选择图标
+    selected(name) {
+      this.form.icon = name
+      this.$forceUpdate()
+    },
     init() {
       this.fetchData()
+      menuApi.getMenuTree().then(response => {
+        this.treeData = response.data
+      })
     },
     fetchData() {
       this.listLoading = true
-      getList().then(response => {
+      menuApi.getList().then(response => {
         this.data = response.data
         this.listLoading = false
       })
-    },
-    handleNodeClick(data, node) {
-      this.form.pcode = data.code
-      this.form.pname = data.name
-      this.showTree = false
     },
     checkSel() {
       if (this.selRow && this.selRow.id) {
@@ -78,19 +84,22 @@ export default {
       return false
     },
     add() {
-      this.form = {}
+      this.form = {ismenu: 1,hidden:false}
       this.formTitle = '添加菜单'
       this.formVisible = true
       this.isAdd = true
+      if(this.$refs['form'] !== undefined) {
+        this.$refs['form'].resetFields()
+      }
     },
     save() {
-      var self = this
+      let self = this
       this.$refs['form'].validate((valid) => {
         if (valid) {
           const menuData = self.form
           delete menuData.parent
           delete menuData.children
-          save(menuData).then(response => {
+          menuApi.save(menuData).then(response => {
             this.$message({
               message: '提交成功',
               type: 'success'
@@ -104,22 +113,16 @@ export default {
       })
     },
     edit(row) {
-      this.form = row
+      this.form= Object.assign({},row);
       if (row.isMenuName === '是') {
         this.form.ismenu = 1
       } else {
         this.form.ismenu = 0
       }
-      if (row.statusName === '启用') {
-        this.form.status = 1
-      } else {
-        this.form.status = 0
+      if (this.form.pcode=='0') {
+        this.form.pcode =undefined
       }
-      if (row.parent) {
-        this.form.pcode = row.parent.code
-        this.form.pname = row.parent.name
-      }
-      console.log(this.form.pcode)
+
       this.formTitle = '编辑菜单'
       this.formVisible = true
       this.isAdd = false
@@ -130,18 +133,20 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        delMenu(row.id).then(response => {
+        menuApi.delMenu(row.id).then(response => {
           this.$message({
             message: '删除成功',
             type: 'success'
           })
           this.fetchData()
-        }).catch(err =>{
-          this.$notify.error({
-            title: '错误',
-            message:err,
-          })
         })
+      })
+    },
+    componentTips(){
+      this.$notify({
+        title: '提示',
+        dangerouslyUseHTMLString:true,
+        message: '顶级目录请输入layout,<br/>左侧菜单请根据实际组件路径输入:views/...<br/>功能按钮无需输入该值'
       })
     }
   }

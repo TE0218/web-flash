@@ -7,11 +7,15 @@ import org.nutz.mapl.Mapl;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 
+import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.metamodel.EntityType;
+import javax.persistence.metamodel.Metamodel;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 基础dao实现类
@@ -34,30 +38,32 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
     }
 
 
-
-
     @Override
-    public List<T> queryBySql(String sql, Class<T> klass) {
-         return (List<T>) queryObjBySql(sql,klass);
+    public List<T> queryBySql(String sql) {
+        List list = entityManager.createNativeQuery(sql, klass).getResultList();
+        return list ;
     }
+
     @Override
     public List<?> queryObjBySql(String sql, Class<?> klass) {
-        List<Map> list = queryBySql(sql);
+        List<Map> list = queryMapBySql(sql);
         if(list.isEmpty()){
-            return null;
+            return Lists.newArrayList();
         }
         List result = Lists.newArrayList();
-        for(Map map :list){
+        for(Map map:list){
             try {
-                Object bean = Mapl.maplistToObj(map,klass);
+                Object bean = Mapl.maplistToObj(map, klass);
                 result.add(bean);
-            }catch (Exception e){
+            } catch (Exception e) {
             }
         }
-        return result;
+        return result ;
+
     }
+
     @Override
-    public List<Map> queryBySql(String sql) {
+    public List<Map> queryMapBySql(String sql) {
         Query query = entityManager.createNativeQuery(sql);
         query.unwrap(NativeQueryImpl.class)
                 .setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP);
@@ -67,29 +73,25 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
 
     @Override
     public Map getMapBySql(String sql) {
-        List<Map> list = queryBySql(sql);
-        if(list.isEmpty()){
+        List<Map> list = queryMapBySql(sql);
+        if (list.isEmpty()) {
             return null;
         }
         return list.get(0);
     }
 
     @Override
-    public T getBySql(String sql) {
-       List<T> list = queryBySql(sql,klass);
-        if(list.isEmpty()){
-            return null;
+    public T getOne(ID id) {
+        Optional<T> optional = findById(id);
+        if(optional.isPresent()){
+            return optional.get();
         }
-        return list.get(0);
+        return null;
     }
 
-    @Override
-    public T getOne(ID id){
-        return findById(id).get();
-    }
     @Override
     public T get(String sql) {
-        List<T> list =  entityManager.createNativeQuery(sql,klass).getResultList();
+        List<T> list = entityManager.createNativeQuery(sql, klass).getResultList();
         return list.get(0);
     }
 
@@ -104,7 +106,29 @@ public class BaseRepositoryImpl<T, ID extends Serializable>
     }
 
     @Override
+    public int truncate() {
+        String query = new StringBuilder("TRUNCATE TABLE ")
+                .append(getTableName())
+                .toString();
+        return entityManager.createNativeQuery(query).executeUpdate();
+    }
+
+    /**
+     * 根据entityType获取表名称
+     * @return
+     */
+    private String getTableName() {
+        Metamodel meta = entityManager.getMetamodel();
+        EntityType<T> entityType = (EntityType<T>) meta.entity(klass);
+        Entity t = klass.getAnnotation(Entity.class);
+        String tableName = (t == null)
+                ? entityType.getName().toUpperCase()
+                : t.name();
+        return tableName;
+    }
+
+    @Override
     public List<T> query(String sql) {
-        return entityManager.createNativeQuery(sql,klass).getResultList();
+        return entityManager.createNativeQuery(sql, klass).getResultList();
     }
 }

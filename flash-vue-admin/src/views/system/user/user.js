@@ -1,11 +1,12 @@
-import { deleteUser, getList, saveUser, remove, setRole, changeStatus } from '@/api/system/user'
-import { list as deptList } from '@/api/system/dept'
+import { deleteUser, getList, saveUser, remove, setRole, changeStatus,resetPassword } from '@/api/system/user'
+import deptApi from '@/api/system/dept'
 import { parseTime } from '@/utils/index'
-import { roleTreeListByIdUser } from '@/api/system/role'
+import roleApi from '@/api/system/role'
 // 权限判断指令
 import permission from '@/directive/permission/index.js'
 
 export default {
+  name:'mgr',
   directives: { permission },
   data() {
     return {
@@ -20,16 +21,14 @@ export default {
           children: 'children'
         }
       },
+      statusList:[
+        {label:'启用',value:'1'},
+        {label:'冻结',value:'2'}
+      ],
       formVisible: false,
       formTitle: '添加用户',
       deptTree: {
-        show: false,
         data: [],
-        defaultProps: {
-          id: 'id',
-          label: 'simplename',
-          children: 'children'
-        }
       },
       isAdd: true,
       form: {
@@ -42,9 +41,8 @@ export default {
         password: '',
         rePassword: '',
         dept: '',
-        status: true,
-        deptid: 1,
-        deptName: ''
+        statusBool: true,
+        deptid: undefined
       },
       rules: {
         account: [
@@ -55,6 +53,9 @@ export default {
           { required: true, message: '请输入用户名', trigger: 'blur' },
           { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
         ],
+        deptid:[
+          { required: true, message: '请选择所属部门', trigger: 'blur' }
+        ],
         email: [
           { required: true, message: '请输入email', trigger: 'blur' }
         ]
@@ -63,7 +64,11 @@ export default {
         page: 1,
         limit: 20,
         account: undefined,
-        name: undefined
+        name: undefined,
+        deptid:undefined,
+        phone:undefined,
+        status:undefined,
+        sex:undefined
       },
       total: 0,
       list: null,
@@ -86,7 +91,7 @@ export default {
   },
   methods: {
     init() {
-      deptList().then(response => {
+      deptApi.list().then(response => {
         this.deptTree.data = response.data
       })
       this.fetchData()
@@ -107,6 +112,10 @@ export default {
       this.listQuery.account = ''
       this.listQuery.name = ''
       this.listQuery.page = 1
+      this.listQuery.deptid=''
+      this.listQuery.status =''
+      this.listQuery.phone=''
+      this.listQuery.sex=''
       this.fetchData()
     },
     handleFilter() {
@@ -146,8 +155,8 @@ export default {
         password: '',
         rePassword: '',
         dept: '',
-        status: true,
-        deptid: 1
+        statusBool: true,
+        deptid: undefined
       }
     },
     add() {
@@ -169,10 +178,19 @@ export default {
       if (!this.isAdd) {
         return true
       }
+
       if (this.form.password !== this.form.rePassword) {
+        this.$message({
+          message: '前后密码不一致',
+          type: 'error'
+        })
         return false
       }
       if (this.form.password === '' || this.form.rePassword === '') {
+        this.$message({
+          message: '密码不能为空',
+          type: 'error'
+        })
         return false
       }
       return true
@@ -183,7 +201,8 @@ export default {
         if (valid) {
           if (this.validPasswd()) {
             var form = self.form
-            if (form.status === true) {
+            console.log('form.status',form.status);
+            if (form.statusBool === true) {
               //启用
               form.status = 1
             } else {
@@ -201,14 +220,8 @@ export default {
               this.fetchData()
               this.formVisible = false
             })
-          } else {
-            this.$message({
-              message: '提交失败',
-              type: 'error'
-            })
           }
         } else {
-          console.log('error submit!!')
           return false
         }
       })
@@ -223,16 +236,24 @@ export default {
       })
       return false
     },
+    editItem(record){
+      this.selRow= Object.assign({},record);
+      this.edit()
+    },
     edit() {
       if (this.checkSel()) {
         this.isAdd = false
-
-        this.form = this.selRow
-        this.form.status = this.selRow.statusName === '启用'
-        this.form.password = ''
+        let form = Object.assign({}, this.selRow);
+        form.statusBool = form.statusName === '启用'
+        form.password = ''
+        this.form = form
         this.formTitle = '修改用户'
         this.formVisible = true
       }
+    },
+    removeItem(record){
+      this.selRow = record
+      this.remove()
     },
     remove() {
       if (this.checkSel()) {
@@ -249,25 +270,46 @@ export default {
               type: 'success'
             })
             this.fetchData()
-          }).catch( err=>{
+          })
+        }).catch(() => {
+        })
+      }
+    },
+
+    resetPwd() {
+      if (this.checkSel()) {
+        var id = this.selRow.id
+        this.$confirm('密码将重置为111111?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          resetPassword(id).then(response => {
+            this.$message({
+              message: '重置密码成功',
+              type: 'success'
+            })
+          }).catch(err => {
             this.$notify.error({
               title: '错误',
-              message:err,
+              message: err,
             })
           })
         }).catch(() => {
         })
       }
     },
-    handleNodeClick(data, node) {
-      this.form.deptid = data.id
-      this.form.deptName = data.simplename
-      this.deptTree.show = false
+    chooseDept(data,node){
+      this.listQuery.deptid = data.id
+      this.search()
     },
-
+    openRoleItem(record){
+      this.selRow = record
+      this.openRole()
+    },
     openRole() {
       if (this.checkSel()) {
-        roleTreeListByIdUser(this.selRow.id).then(response => {
+        roleApi.roleTreeListByIdUser(this.selRow.id).then(response => {
           this.roleDialog.roles = response.data.treeData
           this.roleDialog.checkedRoleKeys = response.data.checkedIds
           this.roleDialog.visible = true

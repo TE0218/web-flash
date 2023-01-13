@@ -7,9 +7,7 @@ import cn.enilu.flash.service.cms.ContactsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -19,8 +17,9 @@ public class ContactController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(getClass());
     @Autowired
     private ContactsService contactsService;
-    @RequestMapping(method = RequestMethod.POST)
-    public Object save(@Valid Contacts contacts){
+
+    @PostMapping
+    public Object save(@RequestBody @Valid Contacts contacts) {
         contactsService.insert(contacts);
         return Rets.success();
     }

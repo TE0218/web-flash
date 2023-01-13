@@ -247,7 +247,6 @@ public final class Lists {
     }
 
 
-
     public static boolean containAny(Set parent, Set child) {
         if (parent == null || child == null) {
             return false;
@@ -267,7 +266,7 @@ public final class Lists {
         return list;
     }
 
-    private static Object getProperty(Object bean,String name){
-        return BeanUtils.getBeanProperty(bean,name);
+    private static Object getProperty(Object bean, String name) {
+        return BeanUtils.getBeanProperty(bean, name);
     }
 }

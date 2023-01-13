@@ -1,7 +1,10 @@
-import { remove, getList, save, exportXls } from '@/api/system/cfg'
+import cfgApi from '@/api/system/cfg'
 import { getApiUrl } from '@/utils/utils'
+import permission from '@/directive/permission/index.js'
 
 export default {
+  name: 'cfg',
+  directives: { permission },
   data() {
     return {
       formVisible: false,
@@ -18,6 +21,11 @@ export default {
         limit: 20,
         cfgName: undefined,
         cfgValue: undefined
+      },
+      dialog:{
+        show:false,
+        title:'',
+        content:'',
       },
       total: 0,
       list: null,
@@ -44,7 +52,7 @@ export default {
         ],
         cfgValue: [
           { required: true, message: this.$t('config.value') + this.$t('common.isRequired'), trigger: 'blur' },
-          { min: 2, max: 2000, message: this.$t('config.value') + this.$t('config.lengthValidation'), trigger: 'blur' }
+          { min: 1, max: 2000, message: this.$t('config.value') + this.$t('config.lengthValidation'), trigger: 'blur' }
         ]
       }
     }
@@ -58,7 +66,7 @@ export default {
     },
     fetchData() {
       this.listLoading = true
-      getList(this.listQuery).then(response => {
+      cfgApi.getList(this.listQuery).then(response => {
         this.list = response.data.records
         this.listLoading = false
         this.total = response.data.total
@@ -117,19 +125,32 @@ export default {
     save() {
       this.$refs['form'].validate((valid) => {
         if (valid) {
-          save({
+          const formData = {
             id: this.form.id,
             cfgName: this.form.cfgName,
             cfgValue: this.form.cfgValue,
             cfgDesc: this.form.cfgDesc
-          }).then(response => {
-            this.$message({
-              message: this.$t('common.optionSuccess'),
-              type: 'success'
+          }
+          if(this.form.id){
+            cfgApi.update(formData).then(response => {
+              this.$message({
+                message: this.$t('common.optionSuccess'),
+                type: 'success'
+              })
+              this.fetchData()
+              this.formVisible = false
             })
-            this.fetchData()
-            this.formVisible = false
-          })
+          }else{
+            cfgApi.add(formData).then(response => {
+              this.$message({
+                message: this.$t('common.optionSuccess'),
+                type: 'success'
+              })
+              this.fetchData()
+              this.formVisible = false
+            })
+          }
+
         } else {
           return false
         }
@@ -145,6 +166,10 @@ export default {
       })
       return false
     },
+    editItem(record){
+      this.selRow= Object.assign({},record);
+      this.edit()
+    },
     edit() {
       if (this.checkSel()) {
         this.isAdd = false
@@ -152,6 +177,10 @@ export default {
         this.formTitle = this.$t('config.edit')
         this.formVisible = true
       }
+    },
+    removeItem(record){
+      this.selRow = record
+      this.remove()
     },
     remove() {
       if (this.checkSel()) {
@@ -161,7 +190,7 @@ export default {
           cancelButtonText: this.$t('button.cancel'),
           type: 'warning'
         }).then(() => {
-          remove(id).then(response => {
+          cfgApi.remove(id).then(response => {
             this.$message({
               message: this.$t('common.optionSuccess'),
               type: 'success'
@@ -173,10 +202,15 @@ export default {
       }
     },
     exportXls() {
-      exportXls(this.listQuery).then(response => {
+      cfgApi.exportXls(this.listQuery).then(response => {
         window.location.href= getApiUrl() + '/file/download?idFile='+response.data.id
       })
 
+    },
+    showCfgValDialog(data){
+      this.dialog.content = data.cfgValue
+      this.dialog.title= data.cfgName
+      this.dialog.show=true
     }
 
   }

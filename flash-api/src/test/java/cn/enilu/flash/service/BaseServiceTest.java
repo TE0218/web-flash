@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-/**测试基础服务类
+/**
+ * 测试基础服务类
+ *
  * @author ：enilu
  * @date ：Created in 2020/5/4 23:38
  */
@@ -24,23 +26,25 @@ public class BaseServiceTest extends BaseApplicationStartTest {
 
     @Test
     public void test_01_insert() {
-        for(int i=0;i<19;i++) {
+        for (int i = 0; i < 19; i++) {
             Boy boy = new Boy();
             boy.setName("李四");
-            boy.setAge(18+i);
-            boy.setHasGirFriend(i%3==0);
+            boy.setAge(18 + i);
+            boy.setHasGirFriend(i % 3 == 0);
             boyService.insert(boy);
         }
     }
+
     @Test
     public void test_02_get() {
-        Boy boy = boyService.get(1L);
-        Assert.assertTrue(boy.getId().intValue() == 1);
+        Long id = boyService.queryAll().get(0).getId();
+        Boy boy = boyService.get(id);
+        Assert.assertTrue(boy.getId().intValue() == id.intValue());
     }
 
     @Test
     public void test_03_get() {
-        SearchFilter searchFilter =SearchFilter.build("name","张三");
+        SearchFilter searchFilter = SearchFilter.build("name", "李四");
         Boy boy = boyService.get(searchFilter);
         Assert.assertTrue(boy.getAge() == 18);
     }
@@ -48,8 +52,8 @@ public class BaseServiceTest extends BaseApplicationStartTest {
     @Test
     public void test_04_get() {
         List<SearchFilter> filters = Lists.newArrayList(
-                SearchFilter.build("name","李四"),
-                SearchFilter.build("age", SearchFilter.Operator.LT,19)
+                SearchFilter.build("name", "李四"),
+                SearchFilter.build("age", SearchFilter.Operator.LT, 19)
         );
         Boy boy = boyService.get(filters);
         Assert.assertTrue(boy.getAge() == 18);
@@ -57,15 +61,15 @@ public class BaseServiceTest extends BaseApplicationStartTest {
 
     @Test
     public void test_05_query() {
-        List<Long> ids = Lists.newArrayList(3L,5L);
+        List<Long> ids = Lists.newArrayList(3L, 5L);
         List<Boy> list = boyService.query(ids);
-        Assert.assertTrue(list.size()==2);
+        Assert.assertTrue(list.size() == 2);
     }
 
     @Test
     public void test_06_queryAll() {
         List<Boy> list = boyService.queryAll();
-        Assert.assertTrue(list.size()>5);
+        Assert.assertTrue(list.size() > 5);
     }
 
     @Test
@@ -90,14 +94,14 @@ public class BaseServiceTest extends BaseApplicationStartTest {
 
     @Test
     public void test_12_count() {
-        long count = boyService.count(SearchFilter.build("name","张三"));
-        Assert.assertTrue(count == 1);
+        long count = boyService.count(SearchFilter.build("name", "李四"));
+        Assert.assertTrue(count >1);
     }
 
     @Test
     public void test_13_count() {
-        long count = boyService.count(Lists.newArrayList(SearchFilter.build("name","张三")));
-        Assert.assertTrue(count == 1);
+        long count = boyService.count(Lists.newArrayList(SearchFilter.build("name", "李四")));
+        Assert.assertTrue(count >1);
     }
 
     @Test
@@ -105,18 +109,18 @@ public class BaseServiceTest extends BaseApplicationStartTest {
         Boy boy = boyService.get(1L);
         boolean pre = boy.getHasGirFriend();
         boy.setHasGirFriend(!pre);
-        Assert.assertTrue(pre!=boy.getHasGirFriend());
+        Assert.assertTrue(pre != boy.getHasGirFriend());
     }
 
     @Test
     public void test_15_delete() {
         List<Boy> list = boyService.queryAll();
-        boyService.delete(20L);
+        boyService.delete(1L);
     }
 
     @Test
     public void test_16_delete1() {
-        List<Long> ids = Lists.newArrayList(18L,19L);
+        List<Long> ids = Lists.newArrayList(18L, 19L);
         boyService.delete(ids);
     }
 
@@ -124,7 +128,8 @@ public class BaseServiceTest extends BaseApplicationStartTest {
     @Test
     public void test_17_clear() {
         boyService.clear();
+        boyService.truncate();
         long count = boyService.count(Lists.newArrayList());
-        Assert.assertTrue(count ==0);
+        Assert.assertTrue(count == 0);
     }
 }

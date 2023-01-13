@@ -1,7 +1,9 @@
 package cn.enilu.flash.security;
 
 import cn.enilu.flash.bean.core.ShiroUser;
+import cn.enilu.flash.cache.TokenCache;
 import cn.enilu.flash.service.system.UserService;
+import cn.enilu.flash.utils.HttpUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.shiro.authc.AuthenticationException;
@@ -23,12 +25,12 @@ import java.util.Set;
  */
 @Service
 public class ApiRealm extends AuthorizingRealm {
-
-    private     Logger logger = LogManager.getLogger(getClass());
     @Autowired
     private UserService userService;
     @Autowired
     private ShiroFactroy shiroFactroy;
+    @Autowired
+    private TokenCache tokenCache;
 
 
     /**
@@ -44,13 +46,13 @@ public class ApiRealm extends AuthorizingRealm {
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-        String username = JwtUtil.getUsername(principals.toString());
-
-        ShiroUser user = shiroFactroy.shiroUser(userService.findByAccount(username));
+        ShiroUser user =  tokenCache.getUser(HttpUtil.getToken());
         SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
         simpleAuthorizationInfo.addRoles(user.getRoleCodes());
         Set<String> permission = user.getPermissions();
+        //资源的权限标识采用menu中的code和url，建议统一以url为准
         simpleAuthorizationInfo.addStringPermissions(permission);
+        simpleAuthorizationInfo.addStringPermissions(user.getUrls());
         return simpleAuthorizationInfo;
     }
 
@@ -65,17 +67,13 @@ public class ApiRealm extends AuthorizingRealm {
         if (username == null) {
             throw new AuthenticationException("token invalid");
         }
-
-        ShiroUser userBean =  ShiroFactroy.me().shiroUser(userService.findByAccount(username));
+        ShiroUser userBean =tokenCache.getUser(token);
         if (userBean == null) {
             throw new AuthenticationException("User didn't existed!");
         }
-        try {
-            if (!JwtUtil.verify(token, username, userBean.getPassword())) {
-                throw new AuthenticationException("Username or password error");
-            }
-        }catch (Exception e){
-            throw  new AuthenticationException(e.getMessage());
+
+        if (!JwtUtil.verify(token, username, userBean.getPassword())) {
+            throw new AuthenticationException("Username or password error");
         }
 
         return new SimpleAuthenticationInfo(token, token, "my_realm");

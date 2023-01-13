@@ -4,12 +4,12 @@ import cn.enilu.flash.BaseApplicationStartTest;
 import cn.enilu.flash.bean.entity.test.Boy;
 import cn.enilu.flash.bean.vo.node.ZTreeNode;
 import cn.enilu.flash.dao.test.BoyRepository;
+import cn.enilu.flash.utils.JsonUtil;
 import cn.enilu.flash.utils.Lists;
 import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.nutz.json.Json;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,16 +47,16 @@ public class BaseRepositoryTest extends BaseApplicationStartTest {
 
     @Test
     public void test_01_queryBySql() {
-        List<Map> list = boyRepository.queryBySql("select name,age from t_test_boy where age>25");
-        System.out.println(Json.toJson(list));
+        List<Map> list = boyRepository.queryMapBySql("select name,age from t_test_boy where age>25");
+        System.out.println(JsonUtil.toJson(list));
         Assert.assertTrue(list.get(0) instanceof Map);
 
     }
 
     @Test
     public void test_02_queryBySql() {
-        List<Boy> list =  boyRepository.queryBySql("select * from t_test_boy where age>25", Boy.class);
-        System.out.println(Json.toJson(list));
+        List<Boy> list = boyRepository.queryBySql("select * from t_test_boy where age>25");
+        System.out.println(JsonUtil.toJson(list));
         Assert.assertTrue(list.get(0) instanceof Boy);
 
     }
@@ -64,25 +64,26 @@ public class BaseRepositoryTest extends BaseApplicationStartTest {
     @Test
     public void test_03_getBySql() {
         Map map = boyRepository.getMapBySql("select name,age from t_test_boy where age=25");
-        System.out.println(Json.toJson(map));
+        System.out.println(JsonUtil.toJson(map));
         Assert.assertTrue(map.get("age").toString().equals("25"));
     }
 
     @Test
     public void test_04_getBySql() {
-        Boy boy = boyRepository.getBySql("select * from t_test_boy where age=25");
+        Boy boy = boyRepository.get("select * from t_test_boy where age=25");
         Assert.assertTrue(boy.getAge() == 25);
     }
+
     @Test
     public void test_05_getOne() {
         Boy boy = boyRepository.getOne(1L);
-        Assert.assertTrue(boy.getAge()==18);
+        Assert.assertTrue(boy.getAge() == 18);
     }
 
     @Test
     public void test_06_get() {
         Boy boy = boyRepository.get("select * from t_test_boy where age=30");
-        Assert.assertTrue(boy.getAge() == 30 );
+        Assert.assertTrue(boy.getAge() == 30);
     }
 
     //todo 测试有问题
@@ -91,7 +92,7 @@ public class BaseRepositoryTest extends BaseApplicationStartTest {
     public void test_07_execute() {
         int ret = boyRepository.execute("update t_test_boy set name='李四'");
         System.out.println(ret);
-        Assert.assertTrue(ret>0);
+        Assert.assertTrue(ret > 0);
     }
 
     @Test
@@ -106,7 +107,7 @@ public class BaseRepositoryTest extends BaseApplicationStartTest {
     public void test_09_queryObjBySql() {
         String sql = "SELECT id, pid AS pId, simplename AS NAME, ( CASE WHEN (pId = 0 OR pId IS NULL) THEN 'true' ELSE 'false' END ) AS open FROM t_sys_dept";
         List<ZTreeNode> list = (List<ZTreeNode>) boyRepository.queryObjBySql(sql, ZTreeNode.class);
-        System.out.println(Json.toJson(list));
+        System.out.println(JsonUtil.toJson(list));
         Assert.assertTrue(list.get(0) instanceof ZTreeNode);
 
     }

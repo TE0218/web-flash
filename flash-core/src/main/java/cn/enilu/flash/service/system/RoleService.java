@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Created  on 2018/3/25 0025.
@@ -22,7 +21,7 @@ import java.util.Optional;
  * @author enilu
  */
 @Service
-public class RoleService extends BaseService<Role,Long,RoleRepository> {
+public class RoleService extends BaseService<Role, Long, RoleRepository> {
     @Autowired
     private RoleRepository roleRepository;
     @Autowired
@@ -95,13 +94,10 @@ public class RoleService extends BaseService<Role,Long,RoleRepository> {
         }
         return nodes;
     }
+
     @Override
     public Role get(Long id) {
-        Optional<Role> optional = roleRepository.findById(id);
-        if (optional.isPresent()) {
-            return optional.get();
-        }
-        return null;
+        return roleRepository.getOne(id);
     }
 
     public List<Role> findByName(String name) {

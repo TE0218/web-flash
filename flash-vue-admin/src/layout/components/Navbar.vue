@@ -5,11 +5,9 @@
     <breadcrumb class="breadcrumb-container" />
 
     <div class="right-menu">
-
-        <template>
-          <a target="_blank" href="https://www.aliyun.com/1111/2019/home?userCode=alts44ap" style="vertical-align: text-bottom;color:lightblue;">2019双11All in cloud低至一折</a>
-        </template>
-        <template>
+      <template>
+        <search id="header-search" class="right-menu-item" title="快速入口" />
+        <a class="right-menu-item" target="_blank" title="文档" href="http://webflash.enilu.cn" style="vertical-align: top;"><i class="el-icon-document"></i></a>
           <lang-select class="international right-menu-item"/>
         </template>
         <el-dropdown class="avatar-container right-menu-item" trigger="click">
@@ -21,11 +19,6 @@
             <router-link to="/account/profile">
               <el-dropdown-item>
                 {{ $t('navbar.profile') }}
-              </el-dropdown-item>
-            </router-link>
-            <router-link to="/account/updatePwd">
-              <el-dropdown-item>
-                {{ $t('navbar.updatePwd') }}
               </el-dropdown-item>
             </router-link>
             <el-dropdown-item divided>
@@ -43,12 +36,14 @@
   import Breadcrumb from '@/components/Breadcrumb'
   import Hamburger from '@/components/Hamburger'
   import LangSelect from '@/components/LangSelect'
+  import Search from '@/components/HeaderSearch'
 
 export default {
   components: {
     Breadcrumb,
     Hamburger,
-    LangSelect
+    LangSelect,
+    Search
   },
   computed: {
     ...mapGetters([
@@ -62,6 +57,7 @@ export default {
     },
     async logout() {
       await this.$store.dispatch('user/logout')
+      await this.$store.dispatch('tagsView/delAllViews')
       this.$router.push('/login')
 
     }
@@ -101,7 +97,8 @@ export default {
       .screenfull {
         height: 20px;
       }
-      .international{
+
+      .right-menu-item{
         vertical-align: top;
       }
       .theme-switch {

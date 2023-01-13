@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -20,7 +21,8 @@ import java.util.List;
 
 /**
  * 基础服务类<br>
- * 本服务类使用了@Cache相关注解做缓存管理，如果子类要实现缓存管理的方法，务必保证参数名和父类一致，否则缓存管理将失败；如果必须更改参数名，请在子类中覆写缓存配置 
+ * 本服务类使用了@Cache相关注解做缓存管理，如果子类要实现缓存管理的方法，务必保证参数名和父类一致，否则缓存管理将失败；如果必须更改参数名，请在子类中覆写缓存配置
+ *
  * @author ：enilu
  * @date ：Created in 2019/6/29 22:32
  */
@@ -52,7 +54,7 @@ public abstract class BaseService<T, ID extends Serializable, R extends BaseRepo
     @Override
     @Cacheable(value = Cache.APPLICATION, key = "#root.targetClass.simpleName+':'+#id")
     public T get(ID id) {
-        return dao.findById(id).get();
+        return dao.getOne(id);
     }
 
     @Override
@@ -142,4 +144,10 @@ public abstract class BaseService<T, ID extends Serializable, R extends BaseRepo
     public void clear() {
         dao.deleteAllInBatch();
     }
+    @Transactional
+    @Override
+    public void truncate() {
+        dao.truncate();
+    }
+
 }

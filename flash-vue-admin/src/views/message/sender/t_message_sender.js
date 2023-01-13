@@ -1,6 +1,9 @@
-import { remove, getList, save } from '@/api/message/sender'
+import senderApi from '@/api/message/sender'
+import permission from '@/directive/permission/index.js'
 
 export default {
+  name: 'msgSender',
+  directives: { permission },
   data() {
     return {
       formVisible: false,
@@ -14,7 +17,8 @@ export default {
       listQuery: {
         page: 1,
         limit: 20,
-        id: undefined
+        name:undefined,
+        className:undefined
       },
       total: 0,
       list: null,
@@ -32,18 +36,6 @@ export default {
       return statusMap[status]
     }
   },
-  computed: {
-
-    //表单验证
-    rules() {
-      return {
-        // cfgName: [
-        //   { required: true, message: this.$t('config.name') + this.$t('common.isRequired'), trigger: 'blur' },
-        //   { min: 3, max: 2000, message: this.$t('config.name') + this.$t('config.lengthValidation'), trigger: 'blur' }
-        // ]
-      }
-    }
-  },
   created() {
     this.init()
   },
@@ -53,7 +45,7 @@ export default {
     },
     fetchData() {
       this.listLoading = true
-      getList(this.listQuery).then(response => {
+      senderApi.getList(this.listQuery).then(response => {
         this.list = response.data.records
         this.listLoading = false
         this.total = response.data.total
@@ -66,6 +58,8 @@ export default {
     reset() {
       this.listQuery.id = ''
       this.listQuery.page = 1
+      this.listQuery.name=''
+      this.listQuery.className=''
       this.fetchData()
     },
     handleFilter() {
@@ -110,9 +104,9 @@ export default {
     save() {
       this.$refs['form'].validate((valid) => {
         if (valid) {
-          save({
-      name:this.form.name,
-      className:this.form.className,
+          senderApi.save({
+            name:this.form.name,
+            className:this.form.className,
             id: this.form.id
           }).then(response => {
             this.$message({
@@ -137,6 +131,10 @@ export default {
       })
       return false
     },
+    editItem(record){
+      this.selRow= Object.assign({},record);
+      this.edit()
+    },
     edit() {
       if (this.checkSel()) {
         this.isAdd = false
@@ -145,15 +143,19 @@ export default {
         this.formVisible = true
       }
     },
+    removeItem(record){
+      this.selRow = record
+      this.remove()
+    },
     remove() {
       if (this.checkSel()) {
-        var id = this.selRow.id
+        const id = this.selRow.id
         this.$confirm(this.$t('common.deleteConfirm'), this.$t('common.tooltip'), {
           confirmButtonText: this.$t('button.submit'),
           cancelButtonText: this.$t('button.cancel'),
           type: 'warning'
         }).then(() => {
-          remove(id).then(response => {
+          senderApi.remove(id).then(response => {
               console.log(response)
               this.$message({
                 message: this.$t('common.optionSuccess'),

@@ -12,7 +12,7 @@ export function saveUser(params) {
   return request({
     url: '/user',
     method: 'post',
-    params
+    data: params
   })
 }
 
@@ -29,7 +29,7 @@ export function remove(userId) {
 export function setRole(params) {
   return request({
     url: '/user/setRole',
-    method: 'get',
+    method: 'post',
     params
   })
 }
@@ -39,6 +39,17 @@ export function changeStatus(userId) {
     url: '/user/changeStatus',
     method: 'get',
     params:{
+      userId
+    }
+  })
+}
+
+
+export function resetPassword(userId) {
+  return request({
+    url: '/user/resetPassword',
+    method: 'post',
+    params: {
       userId
     }
   })

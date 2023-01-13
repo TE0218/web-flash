@@ -7,11 +7,13 @@
 .flash-table-expand {
   font-size: 0;
 }
-
-.flash-table-expand .el-form-item {
+.el-select{
+width:100%;
+}
+.flash-table-expand  {
   margin-right: 0;
   margin-bottom: 0;
-  width: 50%;
+  width: 100%;
 }
 .user{
   padding:10px;
@@ -33,10 +35,12 @@
 
 .user-content > .profile {
   background: #edecec;
-  padding: 10px;
   height: 500px;
   width: 220px;
 }
 .user-content>.profile>img{
   width:100%;
+}
+.user-content > .profile >p{
+  padding:0px 15px;
 }

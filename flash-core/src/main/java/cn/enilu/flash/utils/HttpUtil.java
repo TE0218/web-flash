@@ -20,20 +20,41 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Enumeration;
 import java.net.URLEncoder;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class HttpUtil {
 
-    public static String getIp(){
-       return HttpUtil.getRequest().getRemoteHost();
+    public static String getIp() {
+        HttpServletRequest request = HttpUtil.getRequest();
+        String ip = request.getHeader("x-forwarded-for");
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_CLIENT_IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
     }
 
     /**
@@ -43,7 +64,7 @@ public class HttpUtil {
         HashMap<String, String> values = new HashMap<>(20);
         HttpServletRequest request = HttpUtil.getRequest();
         Enumeration enums = request.getParameterNames();
-        while ( enums.hasMoreElements()){
+        while (enums.hasMoreElements()) {
             String paramName = (String) enums.nextElement();
             String paramValue = request.getParameter(paramName);
             values.put(paramName, paramValue);
@@ -61,20 +82,22 @@ public class HttpUtil {
 
     /**
      * 获取 包装防Xss Sql注入的 HttpServletRequest
+     *
      * @return request
      */
     public static HttpServletRequest getRequest() {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         return new WafRequestWrapper(request);
     }
-    public static  String getToken(){
-        return  getRequest().getHeader("Authorization");
+
+    public static String getToken() {
+        return getRequest().getHeader("Authorization");
     }
 
     /**
      * 向指定URL发送GET方法的请求
      *
-     * @param url 发送请求的URL
+     * @param url   发送请求的URL
      * @param param 请求参数
      * @return URL 所代表远程资源的响应结果
      */
@@ -134,8 +157,8 @@ public class HttpUtil {
     /**
      * 向指定 URL 发送POST方法的请求
      *
-     * @param url 发送请求的 URL
-     * @param param  请求参数
+     * @param url   发送请求的 URL
+     * @param param 请求参数
      * @return 所代表远程资源的响应结果
      */
     public static String sendPost(String url, Map<String, String> param) {
@@ -169,9 +192,9 @@ public class HttpUtil {
             out.flush();
             int status = conn.getResponseCode();
             InputStream inputStream = null;
-            if (status != HttpURLConnection.HTTP_OK){
+            if (status != HttpURLConnection.HTTP_OK) {
                 inputStream = conn.getErrorStream();
-            }else{
+            } else {
                 inputStream = conn.getInputStream();
             }
             // 定义 BufferedReader输入流来读取URL的响应

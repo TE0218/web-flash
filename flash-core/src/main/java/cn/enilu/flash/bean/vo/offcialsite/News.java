@@ -2,6 +2,8 @@ package cn.enilu.flash.bean.vo.offcialsite;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class News {
     /**
@@ -16,7 +18,10 @@ public class News {
      * 图片地址
      */
     private String src;
-    public News(){
+    private Long id;
+    private Date createTime;
+
+    public News() {
 
     }
 

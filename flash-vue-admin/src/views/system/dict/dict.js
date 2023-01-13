@@ -1,6 +1,9 @@
-import { remove, getList, save, update } from '@/api/system/dict'
+import dictApi from '@/api/system/dict'
+import permission from '@/directive/permission/index.js'
 
 export default {
+  name: 'dict',
+  directives: {permission},
   data() {
     return {
       formVisible: false,
@@ -18,8 +21,8 @@ export default {
       },
       rules: {
         name: [
-          { required: true, message: '请输入字典名称', trigger: 'blur' },
-          { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+          {required: true, message: '请输入字典名称', trigger: 'blur'},
+          {min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur'}
         ]
 
       },
@@ -50,7 +53,7 @@ export default {
     },
     fetchData() {
       this.listLoading = true
-      getList(this.listQuery).then(response => {
+      dictApi.getList(this.listQuery).then(response => {
         this.list = response.data
         this.listLoading = false
       }).catch(() => {
@@ -92,17 +95,17 @@ export default {
       this.isAdd = true
     },
     save() {
-      var self = this
+      const self = this
       this.$refs['form'].validate((valid) => {
         if (valid) {
-          var dictName = self.form.name
-          var dictValues = ''
-          for (var key in self.form.details) {
-            var item = self.form.details[key]
+          const dictName = self.form.name
+          let dictValues = ''
+          for (const key in self.form.details) {
+            const item = self.form.details[key]
             dictValues += item['key'] + ':' + item['value'] + ';'
           }
           if (this.form.id !== '') {
-            update({ id: self.form.id, dictName: dictName, dictValues: dictValues }).then(response => {
+            dictApi.update({id: self.form.id, dictName: dictName, dictValues: dictValues}).then(response => {
               this.$message({
                 message: '提交成功',
                 type: 'success'
@@ -111,7 +114,7 @@ export default {
               self.formVisible = false
             })
           } else {
-            save({ dictName: dictName, dictValues: dictValues }).then(response => {
+            dictApi.save({dictName: dictName, dictValues: dictValues}).then(response => {
               this.$message({
                 message: '提交成功',
                 type: 'success'
@@ -135,30 +138,38 @@ export default {
       })
       return false
     },
+    editItem(record) {
+      this.selRow = record
+      this.edit()
+    },
     edit() {
       if (this.checkSel()) {
         this.isAdd = false
         this.formTitle = '修改字典'
-        var detail = this.selRow.detail.split(',')
-        var details = []
-        detail.forEach(function(val, index) {
-          var arr = val.split(':')
-          details.push({ 'key': arr[0], 'value': arr[1] })
+        let detail = this.selRow.detail.split(',')
+        let details = []
+        detail.forEach(function (val, index) {
+          let arr = val.split(':')
+          details.push({'key': arr[0], 'value': arr[1]})
         })
-        this.form = { name: this.selRow.name, id: this.selRow.id, details: details, detail: this.selRow.detail }
+        this.form = {name: this.selRow.name, id: this.selRow.id, details: details, detail: this.selRow.detail}
         this.formVisible = true
       }
     },
+    removeItem(record) {
+      this.selRow = record
+      this.remove()
+    },
     remove() {
       if (this.checkSel()) {
-        var id = this.selRow.id
+        const id = this.selRow.id
 
         this.$confirm('确定删除该记录?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          remove(id).then(response => {
+          dictApi.remove(id).then(response => {
             this.$message({
               message: '操作成功',
               type: 'success'
@@ -170,8 +181,7 @@ export default {
       }
     },
     addDetail() {
-      var details = this.form.details
-
+      let details = this.form.details
       details.push({
         value: '',
         key: ''
@@ -179,8 +189,8 @@ export default {
       this.form.details = details
     },
     removeDetail(detail) {
-      var details = []
-      this.form.details.forEach(function(val, index) {
+      let details = []
+      this.form.details.forEach(function (val, index) {
         if (detail.key !== val.key) {
           details.push(val)
         }

@@ -15,7 +15,17 @@ import i18n from './lang' // Internationalization
 import '@/icons' // icon
 import '@/permission' // permission control
 
-
+/**
+ * 全局引用自定义公共组件
+ */
+import DictSelect from './components/DictSelect'
+Vue.component('dict-select',DictSelect)
+/**
+ * 全局引用第三方组件
+ */
+import Treeselect from "@riophae/vue-treeselect";
+import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+Vue.component('treeselect',Treeselect)
 /**
  * If you don't want to use mock-server
  * you want to use MockJs for mock api

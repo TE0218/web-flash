@@ -1,6 +1,9 @@
-import { remove, getList, save, disable, enable } from '@/api/system/task'
+import taskApi from '@/api/system/task'
+import permission from '@/directive/permission/index.js'
 
 export default {
+  name: 'task',
+  directives: {permission},
   data() {
     return {
       formVisible: false,
@@ -18,14 +21,14 @@ export default {
       },
       rules: {
         name: [
-          { required: true, message: '请输入任务名', trigger: 'blur' },
-          { min: 2, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+          {required: true, message: '请输入任务名', trigger: 'blur'},
+          {min: 2, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur'}
         ],
         jobClass: [
-          { required: true, message: '请输入执行类', trigger: 'blur' }
+          {required: true, message: '请输入执行类', trigger: 'blur'}
         ],
         cron: [
-          { required: true, message: '请输入定时规则', trigger: 'blur' }
+          {required: true, message: '请输入定时规则', trigger: 'blur'}
         ]
 
       },
@@ -57,7 +60,7 @@ export default {
     },
     fetchData() {
       this.listLoading = true
-      getList(this.listQuery).then(response => {
+      taskApi.getList(this.listQuery).then(response => {
         this.list = response.data
         this.listLoading = false
       })
@@ -91,10 +94,10 @@ export default {
       this.isAdd = true
     },
     save() {
-      var self = this
+      let self = this
       this.$refs['form'].validate((valid) => {
         if (valid) {
-          save({
+          taskApi.save({
             id: self.form.id,
             name: self.form.name,
             jobClass: self.form.jobClass,
@@ -131,7 +134,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        enable(id).then(response => {
+        taskApi.enable(id).then(response => {
           this.$message({
             message: '操作成功',
             type: 'success'
@@ -147,7 +150,7 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        disable(id).then(response => {
+        taskApi.disable(id).then(response => {
           this.$message({
             message: '操作成功',
             type: 'success'
@@ -158,7 +161,11 @@ export default {
       })
     },
     viewLog(taskId) {
-      this.$router.push({ path: '/taskLog', query: { taskId: taskId }})
+      this.$router.push({path: '/taskLog', query: {taskId: taskId}})
+    },
+    editItem(record) {
+      this.selRow = Object.assign({}, record);
+      this.edit()
     },
     edit() {
       if (this.checkSel()) {
@@ -168,15 +175,19 @@ export default {
         this.formVisible = true
       }
     },
+    removeItem(record) {
+      this.selRow = record
+      this.remove()
+    },
     remove() {
       if (this.checkSel()) {
-        var id = this.selRow.id
+        const id = this.selRow.id
         this.$confirm('确定删除该记录?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          remove(id).then(response => {
+          taskApi.remove(id).then(response => {
             this.$message({
               message: '操作成功',
               type: 'success'
@@ -187,6 +198,5 @@ export default {
         })
       }
     }
-
   }
 }

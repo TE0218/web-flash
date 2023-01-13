@@ -1,7 +1,6 @@
 package cn.enilu.flash.service;
 
 /**
- *
  * @author ：enilu
  * @date ：Created in 2019/6/29 22:29
  */
@@ -25,4 +24,10 @@ public interface DeleteService<ID> {
      * 清空表数据
      */
     void clear();
+
+    /**
+     * 使用truncate table 清空数据
+     *
+     */
+    void truncate();
 }

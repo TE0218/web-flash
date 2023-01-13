@@ -22,6 +22,10 @@ public class MenuNode implements Comparable {
      * 父节点
      */
     private Long parentId;
+    /**
+     * 父菜单编码
+     */
+    private String pcode;
 
     /**
      * 节点名称
@@ -38,8 +42,7 @@ public class MenuNode implements Comparable {
      */
     private Integer ismenu;
     private String isMenuName;
-    private Integer status;
-    private String statusName;
+
 
     /**
      * 按钮的排序
@@ -50,7 +53,7 @@ public class MenuNode implements Comparable {
      * 节点的url
      */
     private String url;
-     private String path;
+    private String path;
 
     /**
      * 节点图标
@@ -179,20 +182,13 @@ public class MenuNode implements Comparable {
 
     public String getIsMenuName() {
 
-        return ismenu == 1 ?"是":"否";
+        return ismenu == 1 ? "是" : "否";
     }
 
     public void setIsMenuName(String isMenuName) {
         this.isMenuName = isMenuName;
     }
 
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
 
     public String getComponent() {
         return component;
@@ -202,20 +198,20 @@ public class MenuNode implements Comparable {
         this.component = component;
     }
 
-    public String getStatusName() {
-        return status == 1 ?"启用":"禁用";
-    }
-
-    public void setStatusName(String statusName) {
-       this.statusName = statusName;
-    }
-
     public Boolean getHidden() {
         return hidden;
     }
 
     public void setHidden(Boolean hidden) {
         this.hidden = hidden;
+    }
+
+    public String getPcode() {
+        return pcode;
+    }
+
+    public void setPcode(String pcode) {
+        this.pcode = pcode;
     }
 
     @Override
@@ -324,7 +320,7 @@ public class MenuNode implements Comparable {
     public static List<MenuNode> clearBtn(List<MenuNode> nodes) {
         ArrayList<MenuNode> noBtns = new ArrayList<MenuNode>();
         for (MenuNode node : nodes) {
-            if(node.getIsmenu() == IsMenu.YES.getCode()){
+            if (node.getIsmenu() == IsMenu.YES.getCode()) {
                 noBtns.add(node);
             }
         }

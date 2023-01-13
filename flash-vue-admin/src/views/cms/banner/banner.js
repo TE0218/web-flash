@@ -2,8 +2,11 @@ import { remove, getList, save } from '@/api/cms/banner'
 import { getToken } from '@/utils/auth'
 import { Loading } from 'element-ui'
 import { getApiUrl } from '@/utils/utils'
+import permission from '@/directive/permission/index.js'
 
 export default {
+  name: 'banner',
+  directives: { permission },
   data() {
     return {
       uploadUrl: '',
@@ -64,10 +67,9 @@ export default {
       this.listLoading = true
       getList(this.listQuery).then(response => {
         this.list = response.data
-        for (var index in this.list) {
+        for (const index in this.list) {
           let item = this.list[index]
           item.img = getApiUrl() + '/file/getImgStream?idFile=' + item.idFile
-          console.log(item)
         }
 
         this.listLoading = false
@@ -134,6 +136,10 @@ export default {
         type: 'warning'
       })
       return false
+    },
+    removeItem(record){
+      this.selRow = record
+      this.remove()
     },
     remove() {
       if (this.checkSel()) {

@@ -2,8 +2,8 @@ package cn.enilu.flash.api.controller.system;
 
 import cn.enilu.flash.api.controller.BaseController;
 import cn.enilu.flash.bean.constant.Const;
+import cn.enilu.flash.bean.constant.factory.PageFactory;
 import cn.enilu.flash.bean.core.BussinessLog;
-import cn.enilu.flash.bean.dictmap.RoleDict;
 import cn.enilu.flash.bean.entity.system.Role;
 import cn.enilu.flash.bean.entity.system.User;
 import cn.enilu.flash.bean.enumeration.BizExceptionEnum;
@@ -17,18 +17,18 @@ import cn.enilu.flash.service.system.LogObjectHolder;
 import cn.enilu.flash.service.system.RoleService;
 import cn.enilu.flash.service.system.UserService;
 import cn.enilu.flash.service.system.impl.ConstantFactory;
-import cn.enilu.flash.utils.*;
-import cn.enilu.flash.warpper.RoleWarpper;
-import com.google.common.base.Strings;
+import cn.enilu.flash.utils.BeanUtil;
+import cn.enilu.flash.utils.Convert;
+import cn.enilu.flash.utils.Maps;
+import cn.enilu.flash.utils.StringUtil;
+import cn.enilu.flash.utils.factory.Page;
+import cn.enilu.flash.warpper.RoleWrapper;
 import com.google.common.collect.Lists;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -42,46 +42,50 @@ public class RoleController extends BaseController {
     private RoleService roleService;
     @Autowired
     private UserService userService;
-    @RequestMapping(value = "/list",method = RequestMethod.GET)
+
+    @GetMapping(value = "/list")
     @RequiresPermissions(value = {Permission.ROLE})
-    public Object list(String name){
-        List roles = null;
-        if(Strings.isNullOrEmpty(name)) {
-            roles =  roleService.queryAll();
-        }else{
-            roles = roleService.findByName(name);
-        }
-        return Rets.success(new RoleWarpper(BeanUtil.objectsToMaps(roles)).warp());
+    public Object list(@RequestParam(required = false) String name,
+                       @RequestParam(required = false) String code) {
+
+        Page page = new PageFactory().defaultPage();
+        page.addFilter("name", name);
+        page.addFilter("code", code);
+        page = roleService.queryPage(page);
+        List list = (List) new RoleWrapper(BeanUtil.objectsToMaps(page.getRecords())).warp();
+        page.setRecords(list);
+        return Rets.success(page);
     }
 
-    @RequestMapping(method = RequestMethod.POST)
-    @BussinessLog(value = "编辑角色", key = "name", dict = RoleDict.class)
+    @PostMapping
+    @BussinessLog(value = "编辑角色", key = "name")
     @RequiresPermissions(value = {Permission.ROLE_EDIT})
-    public Object save(@Valid Role role){
-        if(role.getId()==null) {
+    public Object save(@RequestBody @Valid Role role) {
+        if (role.getId() == null) {
             roleService.insert(role);
-        }else{
+        } else {
             roleService.update(role);
         }
         return Rets.success();
     }
-    @RequestMapping(method = RequestMethod.DELETE)
-    @BussinessLog(value = "删除角色", key = "roleId", dict = RoleDict.class)
+
+    @DeleteMapping
+    @BussinessLog(value = "删除角色", key = "roleId")
     @RequiresPermissions(value = {Permission.ROLE_DEL})
-    public Object remove(@RequestParam Long roleId){
-        logger.info("id:{}",roleId);
-        if (roleId==null) {
+    public Object remove(@RequestParam Long roleId) {
+        logger.info("id:{}", roleId);
+        if (roleId == null) {
             throw new ApplicationException(BizExceptionEnum.REQUEST_NULL);
         }
-        if(roleId.intValue()<2){
+        if (roleId.intValue() < 4) {
             return Rets.failure("不能删除初始角色");
         }
-        List<User> userList = userService.queryAll(SearchFilter.build("roleid", SearchFilter.Operator.EQ,String.valueOf(roleId)));
-        if(!userList.isEmpty()){
+        List<User> userList = userService.queryAll(SearchFilter.build("roleid", SearchFilter.Operator.EQ, String.valueOf(roleId)));
+        if (!userList.isEmpty()) {
             return Rets.failure("有用户使用该角色，禁止删除");
         }
         //不能删除超级管理员角色
-        if(roleId.intValue() ==Const.ADMIN_ROLE_ID){
+        if (roleId.intValue() == Const.ADMIN_ROLE_ID) {
             return Rets.failure("禁止删除超级管理员角色");
         }
         //缓存被删除的角色名称
@@ -90,8 +94,8 @@ public class RoleController extends BaseController {
         return Rets.success();
     }
 
-    @RequestMapping(value = "/savePermisson",method = RequestMethod.POST)
-    @BussinessLog(value = "配置角色权限", key = "roleId", dict = RoleDict.class)
+    @PostMapping(value = "/savePermisson")
+    @BussinessLog(value = "配置角色权限", key = "roleId")
     @RequiresPermissions(value = {Permission.ROLE_EDIT})
     public Object setAuthority(Long roleId, String
             permissions) {
@@ -106,7 +110,7 @@ public class RoleController extends BaseController {
     /**
      * 获取角色树
      */
-    @RequestMapping(value = "/roleTreeListByIdUser", method = RequestMethod.GET)
+    @GetMapping(value = "/roleTreeListByIdUser")
     @RequiresPermissions(value = {Permission.ROLE})
     public Object roleTreeListByIdUser(Long idUser) {
         User user = userService.get(idUser);

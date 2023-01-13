@@ -29,12 +29,24 @@
            memoryStoreEvictionPolicy="LFU"
            transactionalMode="off">
     </cache>
+    <!--SHORT five minutes-->
+    <cache name="SHORT"
+           maxElementsInMemory="50000" 
+           timeToLiveSeconds="60" 
+           clearOnFlush="false"
+           overflowToDisk="true"
+           diskSpoolBufferSizeMB="1024"
+           maxElementsOnDisk="100000"
+           diskPersistent="false"
+           diskExpiryThreadIntervalSeconds="120"
+           memoryStoreEvictionPolicy="LFU"
+           transactionalMode="off">
+    </cache>
     <!--SESSION缓存-->
     <cache name="SESSION"
            maxElementsInMemory="50000"
            timeToIdleSeconds="86400"
-           timeToLiveSeconds="86400"
-           eternal="true"
+           timeToLiveSeconds="86400" 
            clearOnFlush="false"
            overflowToDisk="true"
            diskSpoolBufferSizeMB="1024"
@@ -49,8 +61,7 @@
     <cache name="APPLICATION"
            maxElementsInMemory="50000"
            timeToIdleSeconds="3600"
-           timeToLiveSeconds="3600"
-           eternal="true"
+           timeToLiveSeconds="3600" 
            clearOnFlush="false"
            overflowToDisk="true"
            diskSpoolBufferSizeMB="1024"

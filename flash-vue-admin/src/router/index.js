@@ -32,7 +32,22 @@ import Layout from '@/layout'
  */
 export const constantRoutes = [
   {
+    path: '/redirect',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: '/redirect/:path(.*)',
+        component: () => import('@/views/redirect/index')
+      }
+    ]
+  },
+  {
     path: '/login',
+    name:'login',
+    meta:{
+      title:'login'
+    },
     component: () => import('@/views/login/index'),
     hidden: true
   },
@@ -49,7 +64,7 @@ export const constantRoutes = [
     redirect: '/dashboard',
     children: [{
       path: 'dashboard',
-      name: 'Dashboard',
+      name: 'dashboard',
       component: () => import('@/views/dashboard/index'),
       meta: { title: 'dashboard', icon: 'dashboard', affix: true }
     }]
@@ -67,21 +82,6 @@ export const constantRoutes = [
 
         meta: { title: '个人资料' }
 
-      },
-      {
-        path: 'timeline',
-        name: '最近活动',
-        component: () => import('@/views/account/timeline.vue'),
-        hidden: true,
-        meta: { title: '最近活动' }
-
-      },
-      {
-        path: 'updatePwd',
-        name: '修改密码',
-        component: () => import('@/views/account/updatePwd.vue'),
-        hidden: true,
-        meta: { title: '修改密码' }
       }
     ]
   }
@@ -89,6 +89,7 @@ export const constantRoutes = [
 ]
 
 const createRouter = () => new Router({
+  mode: 'history', // 去掉url中的#
   scrollBehavior: () => ({ y: 0 }),
   routes: constantRoutes
 })

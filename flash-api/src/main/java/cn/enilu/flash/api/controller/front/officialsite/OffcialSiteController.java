@@ -13,8 +13,8 @@ import cn.enilu.flash.service.cms.BannerService;
 import cn.enilu.flash.utils.Maps;
 import cn.enilu.flash.utils.factory.Page;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -30,18 +30,20 @@ public class OffcialSiteController extends BaseController {
     @Autowired
     private ArticleService articleService;
 
-    @RequestMapping(method = RequestMethod.GET)
+    @GetMapping
     public Object index() {
         Map<String, Object> dataMap = Maps.newHashMap();
 
         BannerVo banner = bannerService.queryIndexBanner();
         dataMap.put("banner", banner);
         List<News> newsList = new ArrayList<>();
-        List<cn.enilu.flash.bean.entity.cms.Article> articles = articleService.queryIndexNews();
-        for (cn.enilu.flash.bean.entity.cms.Article article : articles) {
+        List<Article> articles = articleService.queryIndexNews();
+        for (Article article : articles) {
             News news = new News();
             news.setDesc(article.getTitle());
             news.setUrl("/article?id=" + article.getId());
+            news.setId(article.getId());
+            news.setCreateTime(article.getCreateTime());
             news.setSrc("static/images/icon/user.png");
             newsList.add(news);
         }
@@ -68,7 +70,7 @@ public class OffcialSiteController extends BaseController {
             solutions.add(solution);
         }
         dataMap.put("solutionList", solutions);
-        Map map = Maps.newHashMap("data",dataMap);
+        Map map = Maps.newHashMap("data", dataMap);
         return Rets.success(map);
 
     }

@@ -1,10 +1,7 @@
 package cn.enilu.flash.api.controller.system;
 
 import cn.enilu.flash.api.controller.BaseController;
-import cn.enilu.flash.bean.constant.state.MenuStatus;
 import cn.enilu.flash.bean.core.BussinessLog;
-import cn.enilu.flash.bean.core.ShiroUser;
-import cn.enilu.flash.bean.dictmap.MenuDict;
 import cn.enilu.flash.bean.entity.system.Menu;
 import cn.enilu.flash.bean.enumeration.BizExceptionEnum;
 import cn.enilu.flash.bean.enumeration.Permission;
@@ -12,13 +9,11 @@ import cn.enilu.flash.bean.exception.ApplicationException;
 import cn.enilu.flash.bean.vo.front.Rets;
 import cn.enilu.flash.bean.vo.node.MenuNode;
 import cn.enilu.flash.bean.vo.node.Node;
-import cn.enilu.flash.bean.vo.node.RouterMenu;
+import cn.enilu.flash.bean.vo.node.TreeSelectNode;
 import cn.enilu.flash.bean.vo.node.ZTreeNode;
-import cn.enilu.flash.cache.TokenCache;
 import cn.enilu.flash.service.system.LogObjectHolder;
 import cn.enilu.flash.service.system.MenuService;
 import cn.enilu.flash.service.system.impl.ConstantFactory;
-import cn.enilu.flash.utils.HttpUtil;
 import cn.enilu.flash.utils.Maps;
 import cn.enilu.flash.utils.StringUtil;
 import com.google.common.collect.Lists;
@@ -45,55 +40,69 @@ public class MenuController extends BaseController {
     private Logger logger = LoggerFactory.getLogger(MenuController.class);
     @Autowired
     private MenuService menuService;
-    @Autowired
-    private TokenCache tokenCache;
 
-    @RequestMapping(value = "/listForRouter", method = RequestMethod.GET)
-    public Object listForRouter() {
-        ShiroUser shiroUser = tokenCache.getUser(HttpUtil.getToken());
-
-        List<RouterMenu> list = menuService.getSideBarMenus(shiroUser.getRoleList());
-        return Rets.success(list);
-    }
-    @RequestMapping(value = "/list", method = RequestMethod.GET)
+    @GetMapping(value = "/list")
     public Object list() {
         List<MenuNode> list = menuService.getMenus();
         return Rets.success(list);
     }
 
-    @RequestMapping(method = RequestMethod.POST)
-    @BussinessLog(value = "编辑菜单", key = "name", dict = MenuDict.class)
+    @GetMapping(value = "/tree")
+    public Object tree() {
+        List<MenuNode> list = menuService.getMenus();
+        List<TreeSelectNode> treeSelectNodes = Lists.newArrayList();
+        for (MenuNode menuNode : list) {
+            TreeSelectNode tsn = transfer(menuNode);
+            treeSelectNodes.add(tsn);
+        }
+        return Rets.success(treeSelectNodes);
+    }
+
+    public TreeSelectNode transfer(MenuNode node) {
+        TreeSelectNode tsn = new TreeSelectNode();
+        tsn.setId(node.getCode());
+        tsn.setLabel(node.getName());
+        if (node.getChildren() != null && !node.getChildren().isEmpty()) {
+            List<TreeSelectNode> children = Lists.newArrayList();
+            for (MenuNode child : node.getChildren()) {
+                children.add(transfer(child));
+            }
+            tsn.setChildren(children);
+        }
+        return tsn;
+    }
+
+    @PostMapping
+    @BussinessLog(value = "编辑菜单", key = "name")
     @RequiresPermissions(value = {Permission.MENU_EDIT})
-    public Object save(@ModelAttribute @Valid Menu menu) {
+    public Object save(@RequestBody @Valid Menu menu) {
         //判断是否存在该编号
-        if(menu.getId()==null) {
+        if (menu.getId() == null) {
             String existedMenuName = ConstantFactory.me().getMenuNameByCode(menu.getCode());
             if (StringUtil.isNotEmpty(existedMenuName)) {
                 throw new ApplicationException(BizExceptionEnum.EXISTED_THE_MENU);
             }
-            menu.setStatus(MenuStatus.ENABLE.getCode());
         }
 
         //设置父级菜单编号
         menuService.menuSetPcode(menu);
-        if(menu.getId()==null){
+        if (menu.getId() == null) {
             menuService.insert(menu);
-        }else {
+        } else {
             menuService.update(menu);
         }
         return Rets.success();
     }
 
-    @RequestMapping(method = RequestMethod.DELETE)
-    @BussinessLog(value = "删除菜单", key = "id", dict = MenuDict.class)
+    @DeleteMapping
+    @BussinessLog(value = "删除菜单", key = "id")
     @RequiresPermissions(value = {Permission.MENU_DEL})
     public Object remove(@RequestParam Long id) {
-        logger.info("id:{}", id);
         if (id == null) {
             throw new ApplicationException(BizExceptionEnum.REQUEST_NULL);
         }
         //演示环境不允许删除初始化的菜单
-        if(id.intValue()<70){
+        if (id.intValue() <= 80) {
             return Rets.failure("演示环境不允许删除初始菜单");
         }
         //缓存菜单的名称
@@ -105,12 +114,12 @@ public class MenuController extends BaseController {
     /**
      * 获取菜单树
      */
-    @RequestMapping(value = "/menuTreeListByRoleId", method = RequestMethod.GET)
+    @GetMapping(value = "/menuTreeListByRoleId")
     @RequiresPermissions(value = {Permission.MENU})
     public Object menuTreeListByRoleId(Integer roleId) {
         List<Long> menuIds = menuService.getMenuIdsByRoleId(roleId);
         List<ZTreeNode> roleTreeList = null;
-        if (menuIds==null||menuIds.isEmpty()) {
+        if (menuIds == null || menuIds.isEmpty()) {
             roleTreeList = menuService.menuTreeList(null);
         } else {
             roleTreeList = menuService.menuTreeList(menuIds);
@@ -119,10 +128,10 @@ public class MenuController extends BaseController {
         List<Node> list = menuService.generateMenuTreeForRole(roleTreeList);
 
         //element-ui中tree控件中如果选中父节点会默认选中所有子节点，所以这里将所有非叶子节点去掉
-        Map<Long,ZTreeNode> map = cn.enilu.flash.utils.Lists.toMap(roleTreeList,"id");
-        Map<Long,List<ZTreeNode>> group = cn.enilu.flash.utils.Lists.group(roleTreeList,"pId");
-        for(Map.Entry<Long,List<ZTreeNode>> entry:group.entrySet()){
-            if(entry.getValue().size()>1){
+        Map<Long, ZTreeNode> map = cn.enilu.flash.utils.Lists.toMap(roleTreeList, "id");
+        Map<Long, List<ZTreeNode>> group = cn.enilu.flash.utils.Lists.group(roleTreeList, "pId");
+        for (Map.Entry<Long, List<ZTreeNode>> entry : group.entrySet()) {
+            if (entry.getValue().size() > 1) {
                 roleTreeList.remove(map.get(entry.getKey()));
             }
         }
@@ -130,7 +139,7 @@ public class MenuController extends BaseController {
         List<Long> checkedIds = Lists.newArrayList();
         for (ZTreeNode zTreeNode : roleTreeList) {
             if (zTreeNode.getChecked() != null && zTreeNode.getChecked()
-            &&zTreeNode.getpId().intValue()!=0) {
+                    && zTreeNode.getpId().intValue() != 0) {
                 checkedIds.add(zTreeNode.getId());
             }
         }
